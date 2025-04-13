@@ -14,5 +14,13 @@ app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
+// routes import
+
+import userRouter from "./routes/user.route.js"
+
+//routes declaration
+// when router is not getting exported then simply use app.get()
+app.use("/api/v1/users", userRouter)
+
 
 export { app }
