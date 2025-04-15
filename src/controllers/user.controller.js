@@ -286,6 +286,8 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
+    console.log(req.user)
+
     const user = await User.findByIdAndUpdate(
         req.user?._id, 
         {
@@ -309,7 +311,7 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
 })
 
 const updateUserAvatar = asyncHandler(async(req, res) => {
-    const avatarLocalPath = req.file?.path
+    const avatarLocalPath = req.files?.avatar[0].path
 
     if(!avatarLocalPath){
         throw new ApiError(400, "Avatar file is missing")
@@ -333,23 +335,22 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
     //     }
     // ).select("-password")
 
-    const user = await User.findById(req.user._id)
+    let user = await User.findById(req.user._id)
 
     const oldFilePath = user.avatar
-    user = User.findByIdAndUpdate(
+    user = await User.findByIdAndUpdate(
         user?._id,
         {
             $set:{
                 avatar:avatar.url
             }
+        },
+        {
+            new:true
         }
     ).select("-password")
 
-    const oldDeleted = await deleteFromCloudinary(oldFilePath)
-
-    if(oldDeleted){
-        console.log("Old file deleted from Cloudinary")
-    }
+    await deleteFromCloudinary(oldFilePath)
 
     return res
     .status(200)
@@ -363,7 +364,8 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
 })
 
 const updateUserCoverImage = asyncHandler(async(req, res) => {
-    const coverImageLocalPath = req.file?.path
+
+    const coverImageLocalPath = req.files?.coverImage[0]?.path
 
     if(!coverImageLocalPath){
         throw new ApiError(400, "CoverImage file is missing")
@@ -387,23 +389,26 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     //     }
     // ).select("-password")
 
-    const user = await User.findById(req.user._id)
+    let user = await User.findById(req.user._id)
 
     const oldFilePath = user.coverImage
-    user = User.findByIdAndUpdate(
+    user = await User.findByIdAndUpdate(
         user?._id,
         {
             $set:{
-                coverImage: coverImage.url
+                coverImage:coverImage.url
             }
+        },
+        {
+            new:true
         }
     ).select("-password")
 
-    const oldDeleted = await deleteFromCloudinary(oldFilePath)
+    await deleteFromCloudinary(oldFilePath)
 
-    if(oldDeleted){
-        console.log("Old file deleted from Cloudinary")
-    }
+    // if(oldDeleted){
+    //     console.log("Old coverImage deleted from Cloudinary")
+    // }
 
     return res
     .status(200)
@@ -412,6 +417,40 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
             200,
             user,
             "CoverImage updated successfully"
+        )
+    )
+})
+
+const removeUserCoverImage = asyncHandler(async(req, res) => {
+    let user =await User.findById(req.user._id)
+
+    const oldCoverImage = user.coverImage;
+
+    user = await User.findByIdAndUpdate(
+        user._id,
+        {
+            $set:{
+                coverImage: ""
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password")
+
+    if(!user){
+        throw new ApiError(401, "Some Error Occured while updating")
+    }
+
+    await deleteFromCloudinary(oldCoverImage)
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user,
+            "CoverImage removed successfully"
         )
     )
 })
@@ -425,5 +464,6 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    removeUserCoverImage
 }
