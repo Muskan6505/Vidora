@@ -1,3 +1,3 @@
-const DB_NAME = "ViceVerce"
+const DB_NAME = "Vidora"
 
 export {DB_NAME}
