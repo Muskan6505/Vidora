@@ -122,7 +122,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         thumbnail: thumbnailPath.url,
         title: title,
         description,
-        duration: videoFilePath.duration,
+        duration: videoFilePath.duration? videoFilePath.duration : 0,
         owner: user._id
     })
 
@@ -148,6 +148,10 @@ const getVideoById = asyncHandler(async (req, res) => {
     const video = await Video.findById(videoId)
     if(!video) {
         throw new ApiError(404, "Video not found")
+    }
+
+    if (!video.isPublished && video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "You are not authorized to access this video");
     }
 
     res
@@ -239,7 +243,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
     
     try 
     {
-        await Video.deleteOne();
+        await Video.deleteOne({_id: videoId});
     }catch (error) {
         console.error("Video deletion failed:", error.message);
         throw new ApiError(500, "Video deletion failed");
