@@ -6,31 +6,29 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 import {Video} from "../models/video.model.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
-    //TODO: get all comments for a video
-    const {videoId} = req.params
-    const {page = 1, limit = 10} = req.query
+    const { videoId } = req.params;
+    const { page = 1, limit = 10 } = req.query;
 
-    const video = await Video.findById(videoId)
-
-    if(!video){
-        throw new ApiError(404, "Video not found")
+    const video = await Video.findById(videoId);
+    if (!video) {
+        throw new ApiError(404, "Video not found");
     }
 
     const options = {
         page: parseInt(page),
         limit: parseInt(limit),
-        sort: {createdAt: -1}
-    }
+        sort: { createdAt: -1 }
+    };
 
-    const commentsAggregate = await Comment.aggregate([
+    const pipeline = [
         {
             $match: {
-                video: videoId
+                video: new mongoose.Types.ObjectId(videoId)
             },
         },
         {
-            $lookup:{
-                from:"users",
+            $lookup: {
+                from: "users",
                 localField: "owner",
                 foreignField: "_id",
                 as: "owner"
@@ -40,35 +38,32 @@ const getVideoComments = asyncHandler(async (req, res) => {
             $unwind: "$owner"
         },
         {
-            $project:{
+            $project: {
                 _id: 1,
                 content: 1,
                 createdAt: 1,
                 updatedAt: 1,
-                owner:{
+                owner: {
                     _id: "$owner._id",
                     fullname: "$owner.fullname",
-                    email: "$owner.email"
+                    email: "$owner.email",
+                    username: "$owner.username"
                 }
             }
         }
-    ])
+    ];
 
-    const comments = await Comment.aggregatePaginate(commentsAggregate, options)
-    if(!comments){
-        throw new ApiError(500, "Comments not found")
+    const comments = await Comment.aggregatePaginate(Comment.aggregate(pipeline), options);
+
+    if (!comments) {
+        throw new ApiError(500, "Comments not found");
     }
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            comments,
-            "comments found"
-        )
-    )
-})
+    res.status(200).json(
+        new ApiResponse(200, comments, "Comments found")
+    );
+});
+
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
@@ -179,6 +174,8 @@ const deleteComment = asyncHandler(async (req, res) => {
         )
     )
 })
+
+
 
 export {
     getVideoComments, 

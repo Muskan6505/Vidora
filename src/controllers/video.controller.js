@@ -62,13 +62,15 @@ const getAllVideos = asyncHandler(async (req, res) => {
                 description: 1,
                 duration: 1,
                 views: 1,
+                likes: 1,
                 isPublished: 1,
                 createdAt: 1,
                 updatedAt: 1,
                 owner: {
                     _id: "$ownerDetails._id",
                     username: "$ownerDetails.username",
-                    email: "$ownerDetails.email"
+                    email: "$ownerDetails.email",
+                    avatar: "$ownerDetails.avatar"
                 }
             }
         }
@@ -123,6 +125,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         title: title,
         description,
         duration: videoFilePath.duration? videoFilePath.duration : 0,
+        views:0,
         owner: user._id
     })
 
@@ -288,11 +291,34 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 
 })
 
+const incrementVideoViews = asyncHandler(async (req, res, next) => {
+    const video = await Video.findById(req.params.id);
+    if (!video) return res.status(404).json({ message: "Video not found" });
+
+    video.views += 1;
+    await video.save();
+
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+
+    user.watchHistory = user.watchHistory.filter(
+        (vidId) => vidId.toString() !== video._id.toString()
+    );
+    user.watchHistory.unshift(video._id); 
+    await user.save();
+
+    res.status(200).json({
+        message: "Video views incremented and history updated",
+        video,
+    });
+});
+
 export {
     getAllVideos,
     publishAVideo,
     getVideoById,
     updateVideo,
     deleteVideo,
-    togglePublishStatus
+    togglePublishStatus,
+    incrementVideoViews
 }

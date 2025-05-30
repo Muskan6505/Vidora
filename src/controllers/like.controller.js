@@ -58,7 +58,10 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     .json(
         new ApiResponse(
             200,
-            updatedVideo,
+            {
+                isLiked:like? false: true,
+                updatedVideo
+            },
             "Toggled video like successfully"
         )
     )
@@ -114,7 +117,10 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     .json(
         new ApiResponse(
             200,
-            updatedComment,
+            {
+                isLiked: comment ? false : true,
+                updatedComment,
+            },
             "Toggled comment like successfully"
         )
     )
@@ -170,7 +176,10 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     .json(
         new ApiResponse(
             200,
-            updatedTweet,
+            {
+                isLiked: tweet ? false : true,
+                updatedTweet,
+            },
             "Toggled tweet like successfully"
         )
     )
@@ -178,38 +187,39 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 )
 
 const getLikedVideos = asyncHandler(async (req, res) => {
-    //TODO: get all liked videos
-    const userId = req.user._id
-    if(!isValidObjectId(userId)){
-        throw new ApiError(400, "Invalid user id")
+    const userId = req.user._id;
+
+    if (!isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid user id");
     }
 
-    const user = await User.findById(userId)
+    const user = await User.findById(userId);
 
-    if(!user){
-        throw new ApiError(404, "User not found")
+    if (!user) {
+        throw new ApiError(404, "User not found");
     }
 
-    const likedVideos = await Like.find({ 
-        likedBy: userId, 
-        video: { $ne: null } // Ensure only likes on videos are fetched
+    const likedVideos = await Like.find({
+        likedBy: userId,
+        video: { $ne: null }
     })
-    .populate("video"); 
+    .populate({
+        path: "video",
+        populate: {
+            path: "owner", 
+            select: "username email avatar" 
+        }
+    });
 
-    if(!likedVideos){
-        throw new ApiError(404, "No liked videos found")
+    if (!likedVideos) {
+        throw new ApiError(404, "No liked videos found");
     }
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            likedVideos,
-            "Fetched liked Videos successfully"
-        )
-    )
-})
+    res.status(200).json(
+        new ApiResponse(200, likedVideos, "Fetched liked Videos successfully")
+    );
+});
+
 
 export {
     toggleCommentLike,

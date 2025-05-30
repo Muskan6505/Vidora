@@ -57,7 +57,26 @@ const getUserTweets = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid user id")
     }
 
-    const tweets = await Tweet.find({owner: userId}).populate("owner", "fullname email")
+    const tweets = await Tweet.find({owner: userId}).populate("owner", "fullname email username avatar")
+    if(!tweets){
+        throw new ApiError(500, "Unable to get tweets")
+    }
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            tweets,
+            "Tweets fetched successfully"
+        )
+    )
+})
+
+const getTweets = asyncHandler(async(req, res) => {
+    const tweets = await Tweet.find({})
+        .populate("owner", "fullname email username avatar")
+        .sort({createdAt: -1}) // Sort by creation date, most recent first  
     if(!tweets){
         throw new ApiError(500, "Unable to get tweets")
     }
@@ -90,7 +109,7 @@ const updateTweet = asyncHandler(async (req, res) => {
         tweetId,
         {content},
         {new: true}
-    )
+    ).populate("owner", "fullname email username avatar")
 
     if(!updatedTweet){
         throw new ApiError(404, "Tweet not found")
@@ -136,5 +155,6 @@ export {
     createTweet,
     getUserTweets,
     updateTweet,
-    deleteTweet
+    deleteTweet,
+    getTweets
 }

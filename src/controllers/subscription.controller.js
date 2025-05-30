@@ -85,7 +85,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     }
 
     const subscribedChannels = await Subscription.find({subscriber: subscriberId})
-    .populate("channel", "fullname avatar")
+    .populate("channel", "fullname avatar username")
     .select("channel")
 
     if(!subscribedChannels){

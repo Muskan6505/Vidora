@@ -5,6 +5,7 @@ import{ deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"; 
 import mongoose from "mongoose"
+import crypto from "crypto"
 
 
 const registerUser = asyncHandler(async(req, res) => {
@@ -63,7 +64,7 @@ const registerUser = asyncHandler(async(req, res) => {
         coverImage: coverImage?.url || "",
         email,
         password,
-        username:username.toLowerCase()
+        username:username.toLowerCase(),
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -581,6 +582,66 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     )
 })
 
+const forgotPassword = asyncHandler(async(req, res) => {
+    const {value} = req.body
+    if(!value?.trim()){
+        throw new ApiError(400, "Email or username is required")
+    }
+
+    const user = await User.findOne({
+        $or: [{ email: value }, { username: value }]
+    })
+
+    if(!user){
+        throw new ApiError(404, "Email or username does not exist")
+    }
+
+    // Generate a password reset token
+    const resetToken = user.getResetPasswordToken(); // hashes and sets expire
+    await user.save();
+
+    res.status(200).json
+    (
+        new ApiResponse(
+            200,
+            {token: resetToken},
+            "Token generated"
+        )
+    
+    )
+})
+
+
+const resetPassword = async (req, res) => {
+    const { token, password } = req.body;
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    if (!token || !password) {
+        return res.status(400).json({ message: "Token and password are required" });
+    }
+
+    const user = await User.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            {},
+            "Password reset successfully"
+        )
+    );
+};
+
 export {
     registerUser,
     loginUser, 
@@ -593,5 +654,7 @@ export {
     updateUserCoverImage,
     removeUserCoverImage,
     getUserChannelProfile,
-    getWatchHistory
+    getWatchHistory,
+    forgotPassword,
+    resetPassword
 }
