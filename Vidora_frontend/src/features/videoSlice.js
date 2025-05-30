@@ -16,6 +16,13 @@ const videoSlice = createSlice({
         selectVideo: (state, action) => {
             state.selectedVideo = action.payload;
         },
+        appendVideos: (state, action) => {
+            const newVideos = action.payload;
+            const existingIds = new Set(state.videos.map((v) => v._id));
+            const filtered = newVideos.filter((v) => !existingIds.has(v._id));
+            state.videos.push(...filtered);
+        },
+
         clearSelectedVideo: (state) => {
             state.selectedVideo = null;
         },
@@ -40,6 +47,7 @@ export const {
     addVideo,
     deleteVideo,
     setLoading,
+    appendVideos
 } = videoSlice.actions;
 
 export default videoSlice.reducer;
