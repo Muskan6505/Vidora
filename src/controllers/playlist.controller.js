@@ -82,13 +82,18 @@ const getPlaylistById = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Enter valid playlist Id");
     }
 
-    const playlist = await Playlist.findById(playlistId);
-    
-    if (!playlist) {
-        throw new ApiError(400, "Playlist not found!");
+    const populatedPlaylist = await Playlist.findById(playlistId).populate({
+    path: 'videos',
+    populate: {
+        path: 'owner',
+        select: 'avatar username'
+    }
+    });
+
+    if (!populatedPlaylist) {
+    throw new ApiError(400, "Playlist not found!");
     }
 
-    const populatedPlaylist = await playlist.populate("videos");
 
     res.status(200).json(
         new ApiResponse(
@@ -112,16 +117,16 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
     const playlist = await Playlist.findById(playlistId)
     if(!playlist){
-        throw new ApiError(404, "Playlist not found")
+        throw new ApiError(400, "Playlist not found")
     }
     const video = await Video.findById(videoId)
     if(!video){
-        throw new ApiError(404, "Video not found")
+        throw new ApiError(400, "Video not found")
     }
 
     const videoExists = playlist.videos.includes(videoId)
     if(videoExists){
-        throw new ApiError(400, "Video already exists in playlist")
+        throw new ApiError(401, "Video already exists in playlist")
     }
     playlist.videos.push(videoId)
     await playlist.save()
