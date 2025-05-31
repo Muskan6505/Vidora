@@ -15,6 +15,7 @@ import WatchHistory from "./WatchHistory";
 import Subscriptions from "./Subscriptions";
 import PostVideo from "./PostVideo";
 import LikedVideos from "./LikedVideos";
+import ChannelProfile from "./ChannelProfile";
 
 
 export {
@@ -34,5 +35,6 @@ export {
     WatchHistory,
     Subscriptions,
     PostVideo,
-    LikedVideos
+    LikedVideos,
+    ChannelProfile
 }

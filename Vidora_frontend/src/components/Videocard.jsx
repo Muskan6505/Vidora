@@ -29,13 +29,13 @@ const VideoCard = ({ video }) => {
 
     return (
         <div
-        onClick={handleClick}
         className="cursor-pointer transition-transform hover:scale-105 duration-200"
         >
         <div className="bg-gray-900 rounded-2xl shadow-lg overflow-hidden max-w-sm mx-auto">
             {/* Thumbnail with Duration */}
             <div className="relative">
             <img
+                onClick={handleClick}
                 src={video.thumbnail}
                 alt={video.title}
                 className="w-full h-48 object-cover rounded-t-2xl"
@@ -57,6 +57,7 @@ const VideoCard = ({ video }) => {
             {/* Owner & Views */}
             <div className="flex items-center gap-3 mt-3">
                 <img
+                onClick={()=>{navigate(`/channel/${video.owner.username}`)}}
                 src={video.owner.avatar}
                 alt="avatar"
                 className="w-9 h-9 rounded-full object-cover"

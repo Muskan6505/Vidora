@@ -20,16 +20,37 @@ import {
   WatchHistory,
   SingleVideo,
   NotFound,
-  LikedVideos
+  LikedVideos,
+  ChannelProfile
 } from './pages'; 
 
 import AuthenticatedLayout from './layout/AuthenticatedLayout.jsx'
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { login, logout } from './features/userSlice.js';
+import axios from 'axios';
 
-import { AuthProvider } from './store/AuthContext';
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const refreshToken = async () => {
+      try {
+        const res = await axios.post('api/v1/users/refresh-token');
+        const user = res.data
+        dispatch(login(user));
+      } catch (err) {
+        dispatch(logout());
+      }
+    };
+
+    refreshToken();
+  }, [dispatch]);
+
+
   return (
-    <AuthProvider>
+
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Welcome />} />
@@ -49,11 +70,12 @@ function App() {
             <Route path="/watch-history" element={<WatchHistory />} />
             <Route path="/video/:id" element={<SingleVideo />} />
             <Route path="/liked-videos" element={<LikedVideos />} />
+            <Route path="/channel/:username" element={<ChannelProfile />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+
   );
 }
 

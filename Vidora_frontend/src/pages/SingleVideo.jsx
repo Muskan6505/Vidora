@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import CommentBox from "../components/CommentBox";
-import { SubscriptionButton } from "../components";
+import { LikeButton, SubscriptionButton } from "../components";
 import { addComment, removeComment } from "../features/commentSlice";
 import { Eye, User2 } from "lucide-react"
 
@@ -19,6 +19,10 @@ const SingleVideo = () => {
     const [currentEditingId, setCurrentEditingId] = useState(null);
 
     const userId = user?.data?.user?._id;
+
+    const [showPlaylists, setShowPlaylists] = useState(false);
+    const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
+    const [userPlaylists, setUserPlaylists] = useState([])
 
     useEffect(() => {
         if (!selectedVideo) return;
@@ -55,6 +59,32 @@ const SingleVideo = () => {
             console.error("Getting subscribers failed", error);
         }
     };
+
+    const handleAddToPlaylist = async() => {
+        try {
+            const { data } = await axios.get(`/api/v1/playlist/user/${userId}`);
+            setUserPlaylists(data.data);
+        } catch (err) {
+            console.error(err);
+        }
+        setShowPlaylists(true);
+    }
+
+    const videoId = selectedVideo._id
+    const handleSelectPlaylist = async(playlistId) => {
+        setSelectedPlaylistId(playlistId);
+        setShowPlaylists(false);
+
+        try {
+            const res = await axios.patch(`/api/v1/playlist/add/${videoId}/${playlistId}`, 
+                {}, 
+                {withCredentials:true}
+            )
+            console.log(res)
+        } catch (error) {
+            console.error("Video couldn't added!", error);
+        }
+    }
 
     const getDaysAgo = (date) => {
         const postedDate = new Date(date);
@@ -139,7 +169,7 @@ const SingleVideo = () => {
         <div className="min-h-screen bg-gray-950 text-white px-4 py-6">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Video Player Section */}
-                <div className="md:col-span-2 space-y-6">
+                    <div className="md:col-span-2 space-y-6">
                     {/* Video Player */}
                     <div className="aspect-video w-full rounded-xl overflow-hidden bg-black shadow-lg">
                         <video
@@ -153,11 +183,22 @@ const SingleVideo = () => {
                     <div>
                         <h1 className="text-2xl font-bold text-white mb-2">{selectedVideo.title}</h1>
                         <p className="text-gray-400 mb-3 text-sm">{selectedVideo.description}</p>
-                        <div className="flex items-center text-sm text-gray-500 gap-2">
-                            <Eye size={16} />
-                            <span>
-                                {selectedVideo.views} views • {getDaysAgo(selectedVideo.createdAt)}
-                            </span>
+                        <div className="flex flex-row justify-between items-center">
+                            <div className="flex items-center text-sm text-gray-500 gap-2">
+                                <Eye size={16} />
+                                <span>
+                                    {selectedVideo.views} views • {getDaysAgo(selectedVideo.createdAt)}
+                                </span>
+                            </div>
+                            <div className="flex gap-3 items-center">
+                                <LikeButton videoId={selectedVideo._id} likes={selectedVideo.likes} />
+                                <button
+                                    onClick={handleAddToPlaylist}
+                                    className="px-4 py-2 bg-blue-700 hover:bg-blue-600 rounded-lg text-white text-sm"
+                                >
+                                    Add to playlist
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -180,6 +221,32 @@ const SingleVideo = () => {
                             channelId={selectedVideo.owner._id}
                         />
                     </div>
+
+                    {/* Playlist Dropdown Modal */}
+                    {showPlaylists && (
+                        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center">
+                            <div className="bg-white rounded-lg w-80 max-h-96 overflow-y-auto p-4 shadow-xl">
+                                <h3 className="text-lg font-semibold mb-4">Select Playlist</h3>
+                                <ul className="space-y-2">
+                                    {userPlaylists.map((playlist) => (
+                                        <li
+                                            key={playlist._id}
+                                            className="cursor-pointer hover:bg-gray-400 p-2 rounded text-black"
+                                            onClick={() => handleSelectPlaylist(playlist._id)}
+                                        >
+                                            {playlist.name}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button
+                                    onClick={() => setShowPlaylists(false)}
+                                    className="mt-4 w-full text-sm text-gray-500 hover:text-gray-800"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Comment Section */}

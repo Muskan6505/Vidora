@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { SubscriptionButton } from "../components";
+import { Link } from "react-router-dom";
 
 const Subscriptions = () => {
     const [channels, setChannels] = useState([]);
@@ -46,11 +47,13 @@ const Subscriptions = () => {
                 key={channel._id}
                 className="bg-gray-800 rounded-xl shadow-md flex items-center p-4 gap-4 hover:scale-[1.01] transition-transform"
                 >
-                <img
-                    src={channel.channel.avatar}
-                    alt={channel.channel.username}
-                    className="w-16 h-16 rounded-full object-cover"
-                />
+                <Link to={`/channel/${channel.channel.username}`}>
+                    <img
+                        src={channel.channel.avatar}
+                        alt={channel.channel.username}
+                        className="w-16 h-16 rounded-full object-cover"
+                    />
+                </Link>
                 <div className="flex-1">
                     <h3 className="text-lg font-semibold">{channel.channel.fullname}</h3>
                     <p className="text-sm text-gray-400">{channel.channel.username}</p>

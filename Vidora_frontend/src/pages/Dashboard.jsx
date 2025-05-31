@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import axios from 'axios';
-import { Navbar } from '../components';
+import { useDispatch } from 'react-redux';
+import {selectVideo} from '../features/videoSlice'
 
 export default function Dashboard() {
     const navigate = useNavigate();
@@ -98,6 +99,20 @@ export default function Dashboard() {
         } catch (error) {
             console.error("Update failed", error);
         }
+    };
+
+    const dispatch = useDispatch();
+
+    const handleClick = async (video) => {
+        try {
+        dispatch(selectVideo(video));
+        await axios.patch(`/api/v1/videos/increment/views/${video._id}`, {}, {
+            withCredentials: true,
+        });
+        } catch (error) {
+        console.error("Failed to increment view count:", error);
+        }
+        navigate(`/video/${video._id}`);
     };
 
     useEffect(() => {
@@ -229,9 +244,10 @@ export default function Dashboard() {
                                             {/* Thumbnail */}
                                             {video.thumbnail && (
                                                 <img
+                                                    onClick={()=>{handleClick(video)}}
                                                     src={video.thumbnail}
                                                     alt="Thumbnail"
-                                                    className="w-32 h-20 md:w-48 md:h-28 object-cover rounded-md"
+                                                    className="w-32 h-20 md:w-48 cursor-pointer md:h-28 object-cover rounded-md"
                                                 />
                                             )}
 

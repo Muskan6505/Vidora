@@ -17,7 +17,7 @@ const Navbar = () => {
                 <span className="text-gray-200 font-medium">{user1.fullname}</span>
                 <Link to="/profile">
                 <img
-                src={user1.avatar}
+                src={user1?.avatar}
                 alt="avatar"
                 className="w-8 h-8 rounded-full object-cover"
                 />

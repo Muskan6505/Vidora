@@ -60,11 +60,11 @@ const WatchHistory = () => {
                     <div className="flex flex-col gap-6">
                         {videos.map((video) => (
                             <div
-                                key={video._id}
-                                onClick={() => handleClick(video)}
+                                key={video._id} 
                                 className="flex flex-row rounded-xl overflow-hidden shadow-md hover:scale-[1.01] transition-transform cursor-pointer"
                             >
                                 <img
+                                onClick={() => handleClick(video)}
                                     src={video.thumbnail || ""}
                                     alt={video.title}
                                     className="w-25 md:w-60 md:h-30 h-20 object-cover rounded-xl"
@@ -76,6 +76,7 @@ const WatchHistory = () => {
                                     </div>
                                     <div className="flex items-center md:gap-3 gap-1 md: mt-4 ">
                                         <img
+                                            onClick={()=>{navigate(`/channel/${video?.owner?.username}`)}}
                                             src={video?.owner?.avatar}
                                             alt={video?.owner?.username}
                                             className="md:w-6 md:h-6 ml-2 w-3 h-3 rounded-full"
