@@ -14,17 +14,15 @@ const getAllVideos = asyncHandler(async (req, res) => {
     const matchStage = {};
 
     if (query) {
-        matchStage
-        .$or = [
+        matchStage.$or = [
             { title: { $regex: query, $options: 'i' } },
             { description: { $regex: query, $options: 'i' } }
         ];
     }
 
     if (userId) {
-
-        if(!isValidObjectId(userId)) {
-            throw new ApiError(400, "Invalid user id")
+        if (!isValidObjectId(userId)) {
+            throw new ApiError(400, "Invalid user ID");
         }
 
         const user = await User.findById(userId);
@@ -34,57 +32,58 @@ const getAllVideos = asyncHandler(async (req, res) => {
         matchStage.owner = userId;
     }
 
-    // Step 2: Build the sort stage
-    const sortField = sortBy || "createdAt";
-    const sortOrder = sortType === "asc" ? 1 : -1;
-    const sortStage = { [sortField]: sortOrder };
+    // const sortField = sortBy || "createdAt";
+    // const sortOrder = sortType === "asc" ? 1 : -1;
+    // const sortStage = { [sortField]: sortOrder };
 
-    // Step 3: Build the aggregation pipeline
-    const aggregationPipeline = [
-        { 
-            $match: matchStage 
-        },
-        {
-            $lookup: {
-                from: "users", // make sure this matches your actual User collection name
-                localField: "owner",
-                foreignField: "_id",
-                as: "ownerDetails"
-            }
-        },
-        { $unwind: "$ownerDetails" },
-        { $sort: sortStage },
-        {
-            $project: {
-                videoFile: 1,
-                thumbnail: 1,
-                title: 1,
-                description: 1,
-                duration: 1,
-                views: 1,
-                likes: 1,
-                isPublished: 1,
-                createdAt: 1,
-                updatedAt: 1,
-                owner: {
-                    _id: "$ownerDetails._id",
-                    username: "$ownerDetails.username",
-                    email: "$ownerDetails.email",
-                    avatar: "$ownerDetails.avatar"
-                }
-            }
-        }
-    ];
+    // const aggregationPipeline = [
+    //     { $match: matchStage },
+    //     {
+    //         $lookup: {
+    //             from: "users",
+    //             localField: "owner",
+    //             foreignField: "_id",
+    //             as: "ownerDetails"
+    //         }
+    //     },
+    //     { $unwind: "$ownerDetails" },
+    //     { $sort: sortStage },
+    //     {
+    //         $project: {
+    //             videoFile: 1,
+    //             thumbnail: 1,
+    //             title: 1,
+    //             description: 1,
+    //             duration: 1,
+    //             views: 1,
+    //             likes: 1,
+    //             isPublished: 1,
+    //             createdAt: 1,
+    //             updatedAt: 1,
+    //             owner: {
+    //                 _id: "$ownerDetails._id",
+    //                 username: "$ownerDetails.username",
+    //                 email: "$ownerDetails.email",
+    //                 avatar: "$ownerDetails.avatar"
+    //             }
+    //         }
+    //     }
+    // ];
 
-    // Step 4: Use aggregatePaginate
-    const options = {
-        page: parseInt(page),
-        limit: parseInt(limit)
-    };
+    // const options = {
+    //     page: parseInt(page),
+    //     limit: parseInt(limit)
+    // };
 
-    const result = await Video.aggregatePaginate(Video.aggregate(aggregationPipeline), options);
+    // const result = await Video.aggregatePaginate(Video.aggregate(aggregationPipeline), options);
 
-    // Step 5: Send the response
+    const result = await Video.find(matchStage)
+        .populate("owner", "_id username email avatar")
+        .sort({ [sortBy || "createdAt"]: sortType === "asc" ? 1 : -1 })
+        .skip((page - 1) * limit)
+        .limit(parseInt(limit))
+        .exec();
+        
     return res.status(200).json(
         new ApiResponse(200, result, "Videos fetched successfully")
     );

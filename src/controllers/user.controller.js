@@ -29,7 +29,7 @@ const registerUser = asyncHandler(async(req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
-    // console.log(fullname, email, username, password)
+    console.log(fullname, email, username, password)
 
     const existedUser = await User.findOne({
         $or: [{ username }, { email }]
@@ -77,7 +77,14 @@ const registerUser = asyncHandler(async(req, res) => {
     }
 
     return res.status(201).json(
-        new ApiResponse(200, createdUser, "User registered successfully")
+        new ApiResponse(200, {user:{
+            fullname: createdUser.fullname,
+            email: createdUser.email,
+            username: createdUser.username,
+            _id: createdUser._id,
+            avatar:createdUser.avatar,
+            coverImage:createdUser.coverImage
+        }}, "User registered successfully")
     )
 })
 
@@ -235,6 +242,7 @@ const refreshAccessToken = asyncHandler(async(req, res) => {
                         username: user.username,
                         _id: user._id,
                         avatar: user.avatar,
+                        coverImage: user.coverImage
                     },
                     accessToken,
                     refreshToken: newRefreshToken,
