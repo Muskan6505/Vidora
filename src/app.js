@@ -1,6 +1,11 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors"
+import path from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express()
 
@@ -13,6 +18,11 @@ app.use(express.json({limit: "16kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
+
+app.get("/", (req, res)=>{
+    app.use(express.static(path.resolve(__dirname, "../Vidora_frontend/dist")))
+    res.sendFile(path.resolve(__dirname, "../Vidora_frontend/dist/index.html"))
+})
 
 // routes import
 
