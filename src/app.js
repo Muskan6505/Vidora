@@ -20,10 +20,11 @@ app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
-app.get("/", (req, res)=>{
-    app.use(express.static(path.resolve(__dirname, "../Vidora_frontend/dist")))
-    res.sendFile(path.resolve(__dirname, "../Vidora_frontend/dist/index.html"))
-})
+app.use(express.static(path.resolve(__dirname, "dist")));
+
+app.get("/", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "dist/index.html"));
+});
 
 // routes import
 
