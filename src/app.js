@@ -44,6 +44,8 @@ import likeRouter from "./routes/like.routes.js"
 import playlistRouter from "./routes/playlist.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
 
+app.get("/ping", (req, res) => res.send("pong"));
+
 //routes declaration
 // when router is not getting exported then simply use app.get()
 app.use("/api/v1/healthcheck", healthcheckRouter)
