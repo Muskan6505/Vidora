@@ -17,7 +17,7 @@ app.use(cors({
 
 app.use(express.json({limit: "16kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))
-app.use(express.static("public"))
+// app.use(express.static("public"))
 app.use(cookieParser())
 
 // Serve static files from the local dist folder (inside Vidora_Backend)
@@ -25,6 +25,11 @@ app.use(express.static(path.resolve(__dirname, "../dist")));
 
 app.get("/", (req, res) => {
     res.sendFile(path.resolve(__dirname, "../dist/index.html"));
+});
+
+app.use((err, req, res, next) => {
+    console.error(err);
+    res.status(500).json({ error: "Internal Server Error" });
 });
 
 // routes import
