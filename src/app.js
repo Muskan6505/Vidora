@@ -20,10 +20,11 @@ app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
 app.use(cookieParser())
 
-app.use(express.static(path.resolve(__dirname, "dist")));
+// Serve static files from the local dist folder (inside Vidora_Backend)
+app.use(express.static(path.resolve(__dirname, "../dist")));
 
 app.get("/", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "dist/index.html"));
+    res.sendFile(path.resolve(__dirname, "../dist/index.html"));
 });
 
 // routes import
